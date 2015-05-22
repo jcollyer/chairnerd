@@ -9,6 +9,12 @@
     "lodash": "^3.8.0"
   },
   "devDependencies": {
+    "gulp": "^3.8.11",
+    "gulp-run": "^1.6.8",
     "webpack": "^1.8.11"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jcollyer/sometest.git"
   }
 }

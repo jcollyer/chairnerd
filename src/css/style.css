@@ -108,3 +108,7 @@ body {
 .blog-post__body {
   font-family: 'ff-tisa-sans-web-pro';
 }
+
+.hide {
+  display: none;
+}
