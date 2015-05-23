@@ -7,7 +7,7 @@ var clickedUndoButton = false;
 var bodyContent = document.getElementsByClassName('blog-body__content')[0];
 var stepBackDOMElement = document.getElementById('step-back');
 
-var deletePost = function(){
+var clearAndRenderPosts = function(){
   var elements = that.generatePostDOMElements(that.postCollection);
   bodyContent.innerHTML = "";
   that.renderPosts(elements);
@@ -15,7 +15,9 @@ var deletePost = function(){
 
 addCounter = function(action, id, title, body) {
   actionsTrackerArray.push({"action":action, "id":id, "title":title, "body":body});
-  if (actionsTrackerArray.length > 0) stepBackDOMElement.className = "";
+  if (actionsTrackerArray.length > 0){
+    stepBackDOMElement.style.display = "block";
+  }
 };
 var ViewController = function(model) {
   this.model = model;
@@ -51,24 +53,20 @@ ViewController.prototype.establishHandlers = function() {
 
 ViewController.prototype.stepBack = function() {
   that = this;
-
   stepBackDOMElement
   .addEventListener('click', function(e) {
     clickedUndoButton = true;
-
     var lastAction = actionsTrackerArray.slice(-1)[0];
     if(lastAction.action === 1){ //action === 1, which is "add", so to undo, we need to remove post.
       that.postCollection.pop();
       API.remove(lastAction.id);
-      deletePost();
-
+      clearAndRenderPosts();
     } else { //if action === 2, or "remove", we need to undo, so bring back the post!
       data = {title:lastAction.title, body:lastAction.body};
       that.addPost(data);
     }
-
-    actionsTrackerArray.pop();//pop off the last action each time we click step-back.
-    if (actionsTrackerArray.length === 0) stepBackDOMElement.className = "hide"; //hide step-back button if can't go back anymore.
+    actionsTrackerArray.pop();
+    if (actionsTrackerArray.length === 0) stepBackDOMElement.style.display = "none"; //hide step-back button if can't go back anymore.
   });
 };
 
@@ -128,9 +126,7 @@ removePost = function(id, title, body) {
       that.postCollection.splice(i,1);
     }
   };
-
-  deletePost();
+  clearAndRenderPosts();
 };
-
 
 module.exports = ViewController;
