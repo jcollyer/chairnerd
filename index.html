@@ -10,6 +10,7 @@
   <body>
     <div class="blog-header">
       Chairnerd.
+      <button id="step-back" style="display:none;">Step-Back</button>
     </div>
     <div class="blog-body">
       <div class="blog-body__form-section">
@@ -32,6 +33,7 @@
         <div class="blog-post__body">
           ${body}
         </div>
+        <button onClick="removePost(${id}, '${title}', '${body}')">Remove Post</button>
         <div class="blog-post__divider"></div>
       </div>
     </script>

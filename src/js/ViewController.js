@@ -2,6 +2,23 @@ var API = require('./api'),
     Post = require('./Post'),
     _ = require('lodash');
 
+var actionsTrackerArray = [];
+var clickedUndoButton = false;
+var bodyContent = document.getElementsByClassName('blog-body__content')[0];
+var stepBackDOMElement = document.getElementById('step-back');
+
+var clearAndRenderPosts = function(){
+  var elements = that.generatePostDOMElements(that.postCollection);
+  bodyContent.innerHTML = "";
+  that.renderPosts(elements);
+};
+
+addCounter = function(action, id, title, body) {
+  actionsTrackerArray.push({"action":action, "id":id, "title":title, "body":body});
+  if (actionsTrackerArray.length > 0){
+    stepBackDOMElement.style.display = "block";
+  }
+};
 var ViewController = function(model) {
   this.model = model;
   this.postCollection = [];
@@ -13,6 +30,7 @@ var ViewController = function(model) {
 
 ViewController.prototype.initialize = function() {
   this.establishHandlers();
+  this.stepBack();
   this.fetchPosts();
   var elements = this.generatePostDOMElements(this.postCollection);
   this.renderPosts(elements);
@@ -23,6 +41,7 @@ ViewController.prototype.establishHandlers = function() {
   document.getElementsByClassName('blog-body__form-section__form__submit')[0]
   .addEventListener('click', function(e) {
     e.preventDefault();
+    clickedUndoButton = false;
     var title = document.getElementsByClassName('blog-body__form-section__form__title')[0].value;
     var body = document.getElementsByClassName('blog-body__form-section__form__body')[0].value;
     that.handleSubmit({
@@ -30,6 +49,25 @@ ViewController.prototype.establishHandlers = function() {
       body: body
     });
   })
+};
+
+ViewController.prototype.stepBack = function() {
+  that = this;
+  stepBackDOMElement
+  .addEventListener('click', function(e) {
+    clickedUndoButton = true;
+    var lastAction = actionsTrackerArray.slice(-1)[0];
+    if(lastAction.action === 1){ //action === 1, which is "add", so to undo, we need to remove post.
+      that.postCollection.pop();
+      API.remove(lastAction.id);
+      clearAndRenderPosts();
+    } else { //if action === 2, or "remove", we need to undo, so bring back the post!
+      data = {title:lastAction.title, body:lastAction.body};
+      that.addPost(data);
+    }
+    actionsTrackerArray.pop();
+    if (actionsTrackerArray.length === 0) stepBackDOMElement.style.display = "none"; //hide step-back button if can't go back anymore.
+  });
 };
 
 ViewController.prototype.fetchPosts = function() {
@@ -52,7 +90,6 @@ ViewController.prototype.generatePostDOMElements = function(posts) {
 };
 
 ViewController.prototype.renderPosts = function(postDOMElements) {
-  var bodyContent = document.getElementsByClassName('blog-body__content')[0];
   postDOMElements.forEach(function(element) {
     bodyContent.appendChild(element);
   });
@@ -72,10 +109,24 @@ ViewController.prototype.addPost = function(data) {
   var response = postModel.save();
   if (response.status === 200) {
     this.postCollection.push(postModel);
+    if (!clickedUndoButton) {//don't want to increase actionsTrackerArray if undo button was clicked;
+      addCounter(1, postModel.attributes.id, postModel.attributes.title, postModel.attributes.body);
+    }
   }
 
   var elements = this.generatePostDOMElements([postModel]);
   this.renderPost(elements[0]);
 }
+
+removePost = function(id, title, body) {
+  addCounter(2, id, title, body);
+  API.remove(id);
+  for (var i =0; i < that.postCollection.length; i++) {
+    if (that.postCollection[i].attributes.id === id) {
+      that.postCollection.splice(i,1);
+    }
+  };
+  clearAndRenderPosts();
+};
 
 module.exports = ViewController;

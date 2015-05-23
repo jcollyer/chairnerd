@@ -11,12 +11,15 @@ if (!window.localStorage) {
 }
 
 var API = {
+  remove: function(id) {
+    localStorage.removeItem(POST_KEY_PREFIX + id);
+  },
   get: function(id) {
     var result = {
       status: 200
     };
     if (id) {
-      var post = localStorage.getItem('chairnerd.post' + id);
+      var post = localStorage.getItem(POST_KEY_PREFIX + id);
       if (post === undefined) {
         result.status = 404;
       }
